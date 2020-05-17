@@ -2,60 +2,40 @@
 
 function updateForm() {
     // call the form.
-    let form = FormApp.openById("1HPfYs1z4lUkaDWF1LGxS6PQCnpvjbp6AHx35UQT83nc");
+    let form = FormApp.openById(DMG_GEARING_PLAN_FORM_ID);
     
     // prepare map for form items.
-    let formItemListMap = new Map();
-    initFormMap(form, formItemListMap)
+    let formItemToOptionListMap = initFormItemToOptionListMap(form);
     
     // identify the sheet where the data resides to populate the drop-down
-    let ss = SpreadsheetApp.getActive();
+    let spreadSheet = SpreadsheetApp.getActive();
     
-    // get relevant sheet data.
-    let sheetMC = ss.getSheetByName("MC");
-    let sheetONY = ss.getSheetByName("ONY");
-    let sheetBWL = ss.getSheetByName("BWL");
-    let sheetWB = ss.getSheetByName("WB");
+    // add all (key) items and (value) types to a map;
+    let sheetItemToTypeMap = initSheetItemsToTypeMap(
+        spreadSheet.getSheetByName("MC"),
+        spreadSheet.getSheetByName("ONY"),
+        spreadSheet.getSheetByName("BWL"),
+        spreadSheet.getSheetByName("WB")
+    );
     
-    // add all (key) items and (value) type to the ItemToTypeMap;
-    let sheetItemToTypeMap = new Map();
-    addSheetItemsToMap(sheetMC, sheetItemToTypeMap);
-    addSheetItemsToMap(sheetONY, sheetItemToTypeMap);
-    addSheetItemsToMap(sheetBWL, sheetItemToTypeMap);
-    addSheetItemsToMap(sheetWB, sheetItemToTypeMap);
-    
-    // // populate the drop-down with the array data
-    addMapItemsToForm(sheetItemToTypeMap, formItemListMap);
+    // populate form drop down menus with item data
+    addMapItemsToForm(sheetItemToTypeMap, formItemToOptionListMap);
 }
 
-function addMapItemsToForm(itemToTypeMap, formMap) {
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Head");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Neck");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Shoulder");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Back");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Chest");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Wrist");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Hands");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Waist");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Legs");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Feet");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Ring1"); // type: Ring
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Ring2"); // type: Ring
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Trinket1"); // type: Trinket
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Trinket2"); // type: Trinket
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "MainHand"); // type: Weapon
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "OffHand"); // type: Weapon
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Ranged");
+function addMapItemsToForm(sheetItemToTypeMap, formItemToOptionListMap) {
+    for(formMenuTypeKey of FORM_MENU_TYPE_TO_ID_MAP.keys()) {
+        addMapItemsByKeyToForm(sheetItemToTypeMap, formItemToOptionListMap, formMenuTypeKey)
+    }
 }
 
-function addMapItemsByKeyToForm(itemToTypeMap, formMap, formKey) {
+function addMapItemsByKeyToForm(sheetItemToTypeMap, formItemToOptionListMap, formMenuTypeKey) {
     // prepare arrays for possible menu options
     let options = [];
     let ringOptions = [];
     let trinketOptions = [];
     let weaponOptions = [];
     // Check key for a formKey match, or match with item types that have multiple slot possibilities. (Ring, Trinket, and Weapon)
-    for(let [key,value] of itemToTypeMap){
+    for(let [key,value] of sheetItemToTypeMap){
         let strKey = key.valueOf().toString();
         let strValue = value.valueOf().toString();
         
@@ -65,77 +45,69 @@ function addMapItemsByKeyToForm(itemToTypeMap, formMap, formKey) {
             trinketOptions.push(strKey); // shows in both Trinket1 and Trinket2 menus.
         } else if (strValue.includes('Weapon')){
             weaponOptions.push(strKey); // shows in both MainHand and OffHand menus.
-        } else if (strValue === formKey){
+        } else if (strValue === formMenuTypeKey){
             options.push(strKey); // remaining formKeys.
         }
     }
     
     // Sort options alphabetically A-Z for menus.
-    ringOptions.sort();
-    trinketOptions.sort();
-    weaponOptions.sort();
-    options.sort();
-    
     // push all options to correct form menu by associated form key
-    if(formKey == "Ring1" || formKey == "Ring2"){
-        formMap.get(formKey).setChoiceValues(ringOptions);
-    } else if (formKey == "Trinket1" || formKey == "Trinket2"){
-        formMap.get(formKey).setChoiceValues(trinketOptions);
-    } else if (formKey == "MainHand" || formKey == "OffHand"){
-        formMap.get(formKey).setChoiceValues(weaponOptions);
-    } else {
-        formMap.get(formKey).setChoiceValues(options);
+    if(formMenuTypeKey == RING_1 || formMenuTypeKey == RING_2){
+        formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(ringOptions.sort());
+    }
+    else if (formMenuTypeKey == TRINKET_1 || formMenuTypeKey == TRINKET_2){
+        trinketOptions.sort();
+        formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(trinketOptions);
+    }
+    else if (formMenuTypeKey == MAIN_HAND || formMenuTypeKey == OFF_HAND){
+        weaponOptions.sort();
+        formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(weaponOptions);
+    }
+    else {
+        options.sort();
+        formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(options);
     }
 }
 
-function addSheetItemsToMap(sheet, map) {
-    // grab the values in the first and second column of the sheet - use 2 to skip header row.
-    let col1 = getCellData(2, 1, sheet);
-    let col2 = getCellData(2, 2, sheet);
+function initSheetItemsToTypeMap(...sheets) {
+    let sheetItemsToItemTypeMap = new Map();
     
-    // convert an array ignoring empty cells.
-    let items = []
-    setOptions(col1, items);
-    let itemTypes = []
-    setOptions(col2, itemTypes);
+    for(sheet of sheets){
+        // grab the values in the first and second column of the sheet - use 2 to skip header row.
+        let itemColumnData = getCellData(2, 1, sheet);
+        let itemTypeColumnData = getCellData(2, 2, sheet);
     
-    for(let i = 0; i< items.length; i++){
-        map.set(items[i], itemTypes[i]);
+        // convert an array ignoring empty cells.
+        let itemsArray = [];
+        let itemTypesArray = [];
+        
+        for(let i = 0; i < itemColumnData.length; i++) {
+            if(itemColumnData[i][0] != "") {
+                itemsArray[i] = itemColumnData[i];
+                itemTypesArray[i] = itemTypeColumnData[i];
+            }
+        }
+    
+        for(let i = 0; i< itemsArray.length; i++){
+            sheetItemsToItemTypeMap.set(itemsArray[i], itemTypesArray[i]);
+        }
     }
+    
+    return sheetItemsToItemTypeMap;
 }
 
 function getCellData(startRow, column, sheet) {
     return sheet.getRange(startRow, column, sheet.getMaxRows() - 1).getValues();
 }
 
-function setOptions(values, arrayToFill) {
-    for(let i = 0; i < values.length; i++) {
-        if(values[i][0] != "") {
-            arrayToFill[i] = values[i];
-        }
-    }
-}
-
 function getFormItemAsList(form, itemId) {
     return form.getItemById(itemId).asListItem()
 }
 
-function initFormMap(form, map) {
-    map.set("Head", getFormItemAsList(form, "407218439"));
-    map.set("Neck", getFormItemAsList(form, "1793300395"));
-    map.set("Shoulder", getFormItemAsList(form, "1134373307"));
-    map.set("Back", getFormItemAsList(form, "1922841249"));
-    map.set("Chest", getFormItemAsList(form, "98938550"));
-    map.set("Wrist", getFormItemAsList(form, "453815564"));
-    map.set("Hands", getFormItemAsList(form, "603291189"));
-    map.set("Waist", getFormItemAsList(form, "704089010"));
-    map.set("Legs", getFormItemAsList(form, "489504314"));
-    map.set("Feet", getFormItemAsList(form, "600582489"));
-    map.set("Ring1", getFormItemAsList(form, "1796460282"));
-    map.set("Ring2", getFormItemAsList(form, "1018155902"));
-    map.set("Trinket1", getFormItemAsList(form, "202851639"));
-    map.set("Trinket2", getFormItemAsList(form, "977531088"));
-    map.set("MainHand", getFormItemAsList(form, "1112911872"));
-    map.set("OffHand", getFormItemAsList(form, "396892926"));
-    map.set("Ranged", getFormItemAsList(form, "1844595494"));
+function initFormItemToOptionListMap(form) {
+    let formItemToOptionListMap = new Map();
+    for(let [key,value] of FORM_MENU_TYPE_TO_ID_MAP){
+        formItemToOptionListMap.set(key, getFormItemAsList(form, value));
+    }
+    return formItemToOptionListMap;
 }

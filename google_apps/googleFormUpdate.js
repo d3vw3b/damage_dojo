@@ -56,16 +56,13 @@ function addMapItemsByKeyToForm(sheetItemToTypeMap, formItemToOptionListMap, for
         formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(ringOptions.sort());
     }
     else if (formMenuTypeKey == TRINKET_1 || formMenuTypeKey == TRINKET_2){
-        trinketOptions.sort();
-        formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(trinketOptions);
+        formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(trinketOptions.sort());
     }
     else if (formMenuTypeKey == MAIN_HAND || formMenuTypeKey == OFF_HAND){
-        weaponOptions.sort();
-        formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(weaponOptions);
+        formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(weaponOptions.sort());
     }
     else {
-        options.sort();
-        formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(options);
+        formItemToOptionListMap.get(formMenuTypeKey).setChoiceValues(options.sort());
     }
 }
 

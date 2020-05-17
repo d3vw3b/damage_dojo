@@ -49,31 +49,34 @@ function addMapItemsToForm(itemToTypeMap, formMap) {
 }
 
 function addMapItemsByKeyToForm(itemToTypeMap, formMap, formKey) {
+    // prepare arrays for possible menu options
     let options = [];
     let ringOptions = [];
     let trinketOptions = [];
     let weaponOptions = [];
-    
+    // Check key for a formKey match, or match with item types that have multiple slot possibilities. (Ring, Trinket, and Weapon)
     for(let [key,value] of itemToTypeMap){
         let strKey = key.valueOf().toString();
         let strValue = value.valueOf().toString();
         
         if(strValue.includes('Ring')){
-            ringOptions.push(strKey);
+            ringOptions.push(strKey); // shows in both Ring1 and Ring2 menus.
         } else if (strValue.includes('Trinket')){
-            trinketOptions.push(strKey);
+            trinketOptions.push(strKey); // shows in both Trinket1 and Trinket2 menus.
         } else if (strValue.includes('Weapon')){
-            weaponOptions.push(strKey);
+            weaponOptions.push(strKey); // shows in both MainHand and OffHand menus.
         } else if (strValue === formKey){
-            options.push(strKey);
+            options.push(strKey); // remaining formKeys.
         }
     }
     
+    // Sort options alphabetically A-Z for menus.
     ringOptions.sort();
     trinketOptions.sort();
     weaponOptions.sort();
     options.sort();
     
+    // push all options to correct form menu by associated form key
     if(formKey == "Ring1" || formKey == "Ring2"){
         formMap.get(formKey).setChoiceValues(ringOptions);
     } else if (formKey == "Trinket1" || formKey == "Trinket2"){

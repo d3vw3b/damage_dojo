@@ -15,7 +15,6 @@ function updateForm() {
     let sheetMC = ss.getSheetByName("MC");
     let sheetONY = ss.getSheetByName("ONY");
     let sheetBWL = ss.getSheetByName("BWL");
-    let sheetZG = ss.getSheetByName("ZG");
     let sheetWB = ss.getSheetByName("WB");
     
     // add all (key) items and (value) type to the ItemToTypeMap;
@@ -23,7 +22,6 @@ function updateForm() {
     addSheetItemsToMap(sheetMC, sheetItemToTypeMap);
     addSheetItemsToMap(sheetONY, sheetItemToTypeMap);
     addSheetItemsToMap(sheetBWL, sheetItemToTypeMap);
-    addSheetItemsToMap(sheetZG, sheetItemToTypeMap);
     addSheetItemsToMap(sheetWB, sheetItemToTypeMap);
     
     // // populate the drop-down with the array data

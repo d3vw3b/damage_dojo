@@ -41,12 +41,12 @@ function addMapItemsToForm(itemToTypeMap, formMap) {
     addMapItemsByKeyToForm(itemToTypeMap, formMap, "Waist");
     addMapItemsByKeyToForm(itemToTypeMap, formMap, "Legs");
     addMapItemsByKeyToForm(itemToTypeMap, formMap, "Feet");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Ring1");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Ring2");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Trinket1");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Trinket2");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "MainHand");
-    addMapItemsByKeyToForm(itemToTypeMap, formMap, "OffHand");
+    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Ring1"); // type: Ring
+    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Ring2"); // type: Ring
+    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Trinket1"); // type: Trinket
+    addMapItemsByKeyToForm(itemToTypeMap, formMap, "Trinket2"); // type: Trinket
+    addMapItemsByKeyToForm(itemToTypeMap, formMap, "MainHand"); // type: Weapon
+    addMapItemsByKeyToForm(itemToTypeMap, formMap, "OffHand"); // type: Weapon
     addMapItemsByKeyToForm(itemToTypeMap, formMap, "Ranged");
 }
 
@@ -70,6 +70,11 @@ function addMapItemsByKeyToForm(itemToTypeMap, formMap, formKey) {
             options.push(strKey);
         }
     }
+    
+    ringOptions.sort();
+    trinketOptions.sort();
+    weaponOptions.sort();
+    options.sort();
     
     if(formKey == "Ring1" || formKey == "Ring2"){
         formMap.get(formKey).setChoiceValues(ringOptions);
